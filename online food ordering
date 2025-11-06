@@ -1,0 +1,188 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <iomanip>
+using namespace std;
+
+// Base class for Menu Items
+class MenuItem {
+protected:
+    string name;
+    double price;
+public:
+    MenuItem(string n, double p) : name(n), price(p) {}
+    virtual void display() const {
+        cout << left << setw(20) << name << " ₹" << fixed << setprecision(2) << price << endl;
+    }
+    double getPrice() const { return price; }
+    string getName() const { return name; }
+};
+
+// Derived class for different types of Food
+class FoodItem : public MenuItem {
+    string category;
+public:
+    FoodItem(string n, double p, string c) : MenuItem(n, p), category(c) {}
+    void display() const override {
+        cout << left << setw(20) << name << " | " << setw(10) << category << " | ₹" << fixed << setprecision(2) << price << endl;
+    }
+};
+
+// Class to handle the entire menu
+class Menu {
+    vector<FoodItem> items;
+public:
+    Menu() {
+        // Add some default items
+        items.push_back(FoodItem("Margherita Pizza", 199.00, "Veg"));
+        items.push_back(FoodItem("Paneer Burger", 149.00, "Veg"));
+        items.push_back(FoodItem("Chicken Wrap", 179.00, "Non-Veg"));
+        items.push_back(FoodItem("French Fries", 99.00, "Snack"));
+        items.push_back(FoodItem("Cold Coffee", 89.00, "Beverage"));
+    }
+
+    void displayMenu() const {
+        cout << "\n--------- MENU ---------\n";
+        cout << left << setw(20) << "Item" << setw(12) << "Category" << "Price\n";
+        cout << "----------------------------\n";
+        for (size_t i = 0; i < items.size(); i++) {
+            cout << i + 1 << ". ";
+            items[i].display();
+        }
+    }
+
+    FoodItem getItem(int index) const {
+        if (index >= 0 && index < (int)items.size())
+            return items[index];
+        else
+            throw runtime_error("Invalid menu selection!");
+    }
+
+    int size() const { return items.size(); }
+};
+
+// Class for an Order
+class Order {
+    vector<FoodItem> orderedItems;
+public:
+    void addItem(const FoodItem &item) {
+        orderedItems.push_back(item);
+        cout << item.getName() << " added to your order.\n";
+    }
+
+    void viewOrder() const {
+        if (orderedItems.empty()) {
+            cout << "\nNo items ordered yet.\n";
+            return;
+        }
+        cout << "\n------- YOUR ORDER -------\n";
+        double total = 0;
+        for (const auto &item : orderedItems) {
+            item.display();
+            total += item.getPrice();
+        }
+        cout << "---------------------------\n";
+        cout << "Total: ₹" << fixed << setprecision(2) << total << endl;
+    }
+
+    void generateBill() const {
+        if (orderedItems.empty()) {
+            cout << "\nNo items ordered to generate bill.\n";
+            return;
+        }
+        cout << "\n========== BILL ==========\n";
+        double total = 0;
+        for (const auto &item : orderedItems) {
+            cout << left << setw(20) << item.getName() << "₹" << fixed << setprecision(2) << item.getPrice() << endl;
+            total += item.getPrice();
+        }
+        cout << "---------------------------\n";
+        cout << "Subtotal: ₹" << total << endl;
+        double gst = total * 0.05;
+        cout << "GST (5%): ₹" << gst << endl;
+        cout << "Total Payable: ₹" << total + gst << endl;
+        cout << "===========================\n";
+        cout << "Thank you for ordering! 🍽️\n";
+    }
+};
+
+// Customer class
+class Customer {
+    string name;
+    string phone;
+public:
+    void getDetails() {
+        cout << "Enter your name: ";
+        getline(cin, name);
+        cout << "Enter your phone number: ";
+        getline(cin, phone);
+    }
+    void displayDetails() const {
+        cout << "\nCustomer: " << name << "\nPhone: " << phone << endl;
+    }
+};
+
+// Main Application Class
+class FoodOrderingSystem {
+    Menu menu;
+    Order order;
+    Customer customer;
+public:
+    void start() {
+        cout << "==============================\n";
+        cout << "     ONLINE FOOD ORDERING     \n";
+        cout << "==============================\n";
+
+        cin.ignore();
+        customer.getDetails();
+
+        int choice;
+        do {
+            cout << "\n--------- MAIN MENU ---------\n";
+            cout << "1. View Menu\n";
+            cout << "2. Add Item to Order\n";
+            cout << "3. View My Order\n";
+            cout << "4. Generate Bill\n";
+            cout << "5. Exit\n";
+            cout << "Enter your choice: ";
+            cin >> choice;
+
+            switch (choice) {
+            case 1:
+                menu.displayMenu();
+                break;
+            case 2: {
+                menu.displayMenu();
+                int itemNo;
+                cout << "Enter item number to add: ";
+                cin >> itemNo;
+                if (itemNo > 0 && itemNo <= menu.size())
+                    order.addItem(menu.getItem(itemNo - 1));
+                else
+                    cout << "Invalid selection!\n";
+                break;
+            }
+            case 3:
+                customer.displayDetails();
+                order.viewOrder();
+                break;
+            case 4:
+                customer.displayDetails();
+                order.generateBill();
+                break;
+            case 5:
+                cout << "\nExiting... Thank you for using our service!\n";
+                break;
+            default:
+                cout << "Invalid choice. Try again!\n";
+            }
+        } while (choice != 5);
+    }
+};
+
+// Main function
+int main() {
+    FoodOrderingSystem system;
+    system.start();
+    return 0;
+}
